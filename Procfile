@@ -1,0 +1,1 @@
+web: gunicorn jeevanyaan.wsgi:application
