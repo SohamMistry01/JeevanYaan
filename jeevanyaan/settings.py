@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import os
+import dj_database_url
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -81,19 +82,24 @@ WSGI_APPLICATION = "jeevanyaan.wsgi.application"
     }
 }"""
 # New MySQL config
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'jeevanyaan_db',     # The name of the DB you created in Step 2
-        'USER': 'root',              # Your MySQL username
-        'PASSWORD': 'Soham@01', # Your MySQL password
-        'HOST': 'localhost',         # Or the server IP if hosted remotely
-        'PORT': '3306',              # Default MySQL port
-        'OPTIONS': {
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+if os.getenv("DATABASE_URL"):
+    DATABASES = {
+        "default": dj_database_url.parse(os.environ.get("DATABASE_URL"))
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'jeevanyaan_db',     # The name of the DB you created in Step 2
+            'USER': 'root',              # Your MySQL username
+            'PASSWORD': 'Soham@01', # Your MySQL password
+            'HOST': 'localhost',         # Or the server IP if hosted remotely
+            'PORT': '3306',              # Default MySQL port
+            'OPTIONS': {
+                'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+            }
         }
     }
-}
 
 
 # Password validation
