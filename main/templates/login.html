@@ -1,0 +1,220 @@
+<!--
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JeevanYaan - Login</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: white;
+            overflow: hidden;
+        }
+
+        /* ✅ Background Video */
+        #bg-video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;   /* ensures video fills the screen */
+            z-index: -1;
+            background-size: cover;
+            background-position: center;
+        }
+
+        /* ✅ Login Box */
+        .login-container {
+            width: 400px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+
+        .login-container img {
+            width: 180px;
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            color: #fff;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            text-align: left;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: none;
+            border-radius: 5px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #2c3e50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 15px;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #34495e;
+        }
+
+        .switch-page {
+            margin-top: 15px;
+        }
+
+        .switch-page a {
+            color: #00d4ff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .switch-page a:hover {
+            text-decoration: underline;
+        }
+
+        /* ✅ Messages */
+        .messages {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 10px;
+        }
+
+        .messages li {
+            color: lightgreen;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+    <video autoplay muted loop id="bg-video">
+        <source src="{% static 'videos/JeevanYaan-BG.mp4' %}" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+
+    <div class="login-container">
+        <img src="{% static 'images/logo-new.png' %}" alt="JeevanYaan Logo">
+        <h2>Login to JeevanYaan</h2>
+
+
+        {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        <form method="post" action="{% url 'login' %}">
+            {% csrf_token %}
+            <label>Username:</label>
+            <input type="text" name="username" required>
+            <label>Password:</label>
+            <input type="password" name="password" required>
+            <button type="submit">Login</button>
+        </form>
+        <div class="switch-page">
+            <p>Don't have an account? <a href="{% url 'register' %}">Register Here</a></p>
+        </div>
+    </div>
+
+</body>
+</html>
+-->
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+    <title>Login - JeevanYaan</title>
+    <link rel="stylesheet" href="{% static 'css/main_styles.css' %}">
+    
+    <script>
+        function updateLogo(theme) {
+            const logo = document.getElementById('theme-logo');
+            if (!logo) return;
+            const lightSrc = logo.getAttribute('data-light');
+            const darkSrc = logo.getAttribute('data-dark');
+            logo.src = (theme === 'dark' && darkSrc) ? darkSrc : lightSrc;
+        }
+
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            document.addEventListener('DOMContentLoaded', function() {
+                updateLogo(savedTheme);
+            });
+        })();
+
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+            updateLogo(next);
+        }
+    </script>
+</head>
+<body>
+    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme"> ⚙️ </button>
+
+    <div class="auth-container">
+        <div class="auth-box">
+            <img id="theme-logo" 
+                 src="{% static 'images/logo-new.png' %}" 
+                 data-light="{% static 'images/logo-new.png' %}" 
+                 data-dark="{% static 'images/alt-logo-new.png' %}" 
+                 alt="Logo" 
+                 class="logo">
+            <h2 class="auth-title">Welcome Back</h2>
+            <p class="auth-subtitle">Login to access your companion</p>
+
+            {% if messages %}
+                <ul style="color: #44ef4a; text-align: left; margin-bottom: 15px;">
+                    {% for message in messages %}<li>{{ message }}</li>{% endfor %}
+                </ul>
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+                <input type="text" name="username" placeholder="Username" required>
+                <input type="password" name="password" placeholder="Password" required>
+                <button type="submit" class="btn" style="width: 100%;">Login</button>
+            </form>
+
+            <div style="margin-top: 20px;">
+                <p>New here? <a href="{% url 'register' %}" class="auth-link">Create an account</a></p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

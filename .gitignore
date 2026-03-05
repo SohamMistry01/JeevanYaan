@@ -1,0 +1,7 @@
+.env
+pycache/
+*.py[cod]
+*$py.class
+*.env
+.vscode/
+staticfiles/

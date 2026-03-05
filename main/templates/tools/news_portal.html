@@ -1,0 +1,141 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+    <title>News Portal - JeevanYaan</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <script>
+        function showLoading() {
+            document.querySelector('.loading-msg').style.display = 'block';
+            document.querySelector('.submit-btn').disabled = true;
+            document.querySelector('.submit-btn').innerText = "Fetching News... ⏳";
+        }
+    </script>
+    <style>
+        .news-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #3498db;
+            transition: transform 0.2s;
+        }
+        .news-card:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+        .news-headline {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #ecf0f1;
+            margin-bottom: 10px;
+        }
+        .news-summary {
+            font-size: 1rem;
+            color: #bdc3c7;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+        .news-link {
+            display: inline-block;
+            color: #3498db;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+        .news-link:hover {
+            text-decoration: underline;
+        }
+        .loading-msg {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+            color: #bdc3c7;
+            font-style: italic;
+        }
+        select, input[type="number"] {
+            margin-bottom: 0; /* Override default if needed */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <a href="{% url 'home' %}" class="back-btn"> <- Back to Dashboard</a>
+        <h1>News Portal</h1>
+        <img src="{% static 'images/alt-logo-new.png' %}" alt="JeevanYaan Logo" class="tool-logo">
+    </div>
+
+    <div class="tool-container">
+        <p class="tool-description">
+            Get the latest trending news tailored to your interests using the <strong>Tavily Search API</strong>.
+        </p>
+
+        <form method="post" class="tool-form" onsubmit="showLoading()">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="category">Category</label>
+                <select name="category" id="category">
+                    {% for cat in categories %}
+                        <option value="{{ cat }}">{{ cat|title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="time_filter">Time Range</label>
+                <select name="time_filter" id="time_filter">
+                    {% for time in time_filters %}
+                        <option value="{{ time }}">{{ time|title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="limit">Number of Articles</label>
+                <input type="number" name="limit" id="limit" value="5" min="3" max="10">
+            </div>
+
+            <button type="submit" class="submit-btn">🔎 Fetch News</button>
+            <div class="loading-msg">Scanning the web for top stories...</div>
+        </form>
+
+        {% if result %}
+            <div class="result-section">
+                
+                {% if result.error %}
+                    <h3 style="color: #e74c3c;">Error</h3>
+                    <p>{{ result.error }}</p>
+                {% else %}
+                    <h2>
+                        Latest {{ result.category|title }} News 
+                        <span style="font-size: 0.6em; opacity: 0.7; vertical-align: middle;">({{ result.time_range }})</span>
+                    </h2>
+                    <hr>
+
+                    {% for item in result.news %}
+                    <div class="news-card">
+                        <div class="news-headline">{{ forloop.counter }}. {{ item.headline }}</div>
+                        <div class="news-summary">{{ item.summary }}</div>
+                        <a href="{{ item.url }}" target="_blank" class="news-link">🔗 Read Full Source</a>
+                    </div>
+                    {% endfor %}
+
+                    <form method="post" style="margin-top: 30px;">
+                        {% csrf_token %}
+                        <input type="hidden" name="pdf_content" value="{{ pdf_content }}">
+                        <button type="submit" name="download_pdf" value="true" class="submit-btn" style="background: #e67e22;">
+                            📥 Download News Report
+                        </button>
+                    </form>
+                {% endif %}
+                
+            </div>
+        {% endif %}
+    </div>
+
+</body>
+</html>

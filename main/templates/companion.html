@@ -1,0 +1,184 @@
+<!--
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JeevanYaan - Companion</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: url("{% static 'images/bg1.jpg' %}") no-repeat center center fixed;
+            background-size: cover;
+        }
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 260px;
+            height: 95%;
+            background-color: #2c3e50;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+        .profile {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .profile h4 {
+            margin: 5px 0;
+            font-family: Verdana;
+        }
+        .nav-link {
+            padding: 12px;
+            margin: 1px 0;
+            text-decoration: none;
+            color: white;
+            display: block;
+            border-radius: 5px;
+            transition: background 0.3s;
+            font-size: 15px;
+        }
+        .nav-link:hover {
+            background-color: #34495e;
+        }
+        .content {
+            margin-left: 300px;
+            padding: 10px;
+            height: 100vh;
+            background: url("{% static 'images/bg1.jpg' %}") no-repeat center center fixed;
+            background-size: cover;
+            text-align: center;
+            font-style:italic ;
+            font-family:monospace;
+        }
+        iframe {
+            width: 90%;
+            height: 95vh;
+            border: none;
+            background: url("{% static 'images/bg1.jpg' %}") no-repeat center center fixed;
+            background-size: cover;
+            border-radius: 8px;
+        }
+        .logout-btn {
+            margin-top: auto;
+            padding: 12px;
+            background: #e74c3c;
+            text-align: center;
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+        }
+        .logout-btn:hover {
+            background: #c0392b;
+        }
+        .logo {
+            width: 80px;
+            height: auto;
+            margin-top: 20px;
+        }
+        .logout-btn.home-btn {
+        background: #3498db;
+        }
+        .logout-btn.home-btn:hover {
+            background: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="profile">
+            <img src="{% static 'images/alt-logo-new.png' %}" alt="JeevanYaan Logo" class="logo">
+            <h4>Welcome {{ profile.user.first_name }}!</h4> <hr>
+            <p><b>Take the next steps towards the growth of your career</b></p>
+        </div>
+
+        <a href="{% url 'career_planner' %}" class="nav-link">🎯 Career Path Planner</a>
+        <a href="{% url 'roadmap_creator' %}" class="nav-link">🛣️ Roadmap Generator</a>
+        <a href="{% url 'notes_assistant' %}" class="nav-link">📝 Notes & Assignment Assistant</a>
+        <a href="{% url 'quiz_maker' %}" class="nav-link">❓ Quiz Maker</a>
+        <a href="{% url 'research_agent' %}" class="nav-link">🔍 Research Agent</a>
+        <a href="{% url 'news_portal' %}" class="nav-link">📰 News Portal</a>
+        <a href="{% url 'resume_scanner' %}" class="nav-link">🪪 Resume Scanner</a>
+        <a href="{% url 'mental_health_analyzer' %}" class="nav-link">💆 Mental Health Analyzer</a>
+
+        <a href="{% url 'home' %}" class="logout-btn home-btn">🏠 Back to Home</a>
+        <a href="{% url 'logout' %}" class="logout-btn">🚪 Logout</a>
+    </div>
+
+    <div class="content">
+        <hr>
+        <div style="margin-top: 100px; color: white;">
+            <h1>Select a tool from the sidebar</h1>
+            <p>Each tool will now open in its own dedicated page.</p>
+        </div>
+    </div>
+
+    </body>
+</html>
+-->
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Companion - JeevanYaan</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+    
+    <link rel="stylesheet" href="{% static 'css/main_styles.css' %}">
+
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+        }
+    </script>
+</head>
+<body>
+
+    <button class="theme-toggle" onclick="toggleTheme()" title="Switch Theme">🌓</button>
+
+    <div class="sidebar">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <img src="{% static 'images/alt-logo-new.png' %}" alt="JeevanYaan Logo" class="sidebar-logo">
+            <h4 style="margin: 10px 0 5px; color: var(--text-primary);">Hello, {{ profile.user.first_name }}!</h4>
+            <p style="font-size: 0.85rem; color: var(--text-secondary);">Let's grow your career.</p>
+        </div>
+        
+        <nav>
+            <a href="{% url 'career_planner' %}" class="nav-item">🎯 Career Path Planner</a>
+            <a href="{% url 'roadmap_creator' %}" class="nav-item">🛣️ Roadmap Generator</a>
+            <a href="{% url 'notes_assistant' %}" class="nav-item">📝 Notes Assistant</a>
+            <a href="{% url 'quiz_maker' %}" class="nav-item">❓ Quiz Maker</a>
+            <a href="{% url 'research_agent' %}" class="nav-item">🔍 Research Agent</a>
+            <a href="{% url 'news_portal' %}" class="nav-item">📰 News Portal</a>
+            <a href="{% url 'resume_scanner' %}" class="nav-item">🪪 Resume Scanner</a>
+            <a href="{% url 'mental_health_analyzer' %}" class="nav-item">💆 Mental Health Analyzer</a>
+            
+            <hr style="border: 0; border-top: 1px solid var(--card-border); margin: 20px 0;">
+            
+            <a href="{% url 'home' %}" class="nav-item">🏠 Back to Home</a>
+            <a href="{% url 'logout' %}" class="nav-item" style="color: #ef4444;">🚪 Logout</a>
+        </nav>
+    </div>
+
+    <div class="content-area">
+        <div class="content-placeholder">
+            <img src="{% static 'images/logo-new.png' %}" alt="Logo" style="width: 150px; opacity: 0.8; margin-bottom: 20px;">
+            <h1 style="color: var(--text-primary);">Ready to start?</h1>
+            <p>Select a tool from the sidebar to begin your journey.</p>
+        </div>
+    </div>
+
+</body>
+</html>

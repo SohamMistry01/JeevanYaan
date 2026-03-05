@@ -1,0 +1,176 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+    <title>Mental Health Analyzer - JeevanYaan</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        /* Specific tweaks for this tool */
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 600px) {
+            .grid-container { grid-template-columns: 1fr; }
+        }
+        .prediction-box {
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        .safe { background-color: rgba(46, 204, 113, 0.2); border: 1px solid #2ecc71; color: #2ecc71; }
+        .risk { background-color: rgba(231, 76, 60, 0.2); border: 1px solid #e74c3c; color: #e74c3c; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <a href="{% url 'home' %}" class="back-btn"> <- Back to Dashboard</a>
+        <img src="{% static 'images/alt-logo-new.png' %}" alt="JeevanYaan Logo" class="tool-logo">
+        <h1>Mental Health Analyzer</h1>
+    </div>
+
+    <div class="tool-container">
+        <p class="tool-description">
+            Predict the likelihood of a mental health condition based on lifestyle factors 
+            and get an <strong>AI-Expert Review</strong>.
+        </p>
+
+        <form method="post" class="tool-form">
+            {% csrf_token %}
+            
+            <div class="grid-container">
+                <div>
+                    <div class="form-group">
+                        <label>Age</label>
+                        <input type="number" name="age" value="{{ user_data.age }}" min="18" max="100" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Work Hours (per week)</label>
+                        <input type="number" name="work_hours" value="{{ user_data.work_hours }}" min="0" max="100" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Social Media (hours/day)</label>
+                        <input type="number" step="0.5" name="social_media" value="{{ user_data.social_media }}" min="0" max="24" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Gender</label>
+                        <select name="gender">
+                            {% for opt in genders %}
+                                <option value="{{ opt }}" {% if user_data.gender == opt %}selected{% endif %}>{{ opt }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Occupation</label>
+                        <select name="occupation">
+                            {% for opt in occupations %}
+                                <option value="{{ opt }}" {% if user_data.occupation == opt %}selected{% endif %}>{{ opt }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Country</label>
+                        <select name="country">
+                            {% for opt in countries %}
+                                <option value="{{ opt }}" {% if user_data.country == opt %}selected{% endif %}>{{ opt }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="form-group">
+                        <label>Sleep Hours (per day)</label>
+                        <input type="number" step="0.5" name="sleep_hours" value="{{ user_data.sleep_hours }}" min="0" max="24" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Physical Activity (hours/week)</label>
+                        <input type="number" name="physical_activity" value="{{ user_data.physical_activity }}" min="0" max="50" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Stress Level</label>
+                        <select name="stress_level">
+                            {% for opt in stress_levels %}
+                                <option value="{{ opt }}" {% if user_data.stress_level == opt %}selected{% endif %}>{{ opt }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Diet Quality</label>
+                        <select name="diet_quality">
+                            {% for opt in diet_qualities %}
+                                <option value="{{ opt }}" {% if user_data.diet_quality == opt %}selected{% endif %}>{{ opt }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Smoking Habit</label>
+                        <select name="smoking_habit">
+                            {% for opt in smoking_habits %}
+                                <option value="{{ opt }}" {% if user_data.smoking_habit == opt %}selected{% endif %}>{{ opt }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Alcohol Consumption</label>
+                        <select name="alcohol_consumption">
+                            {% for opt in alcohol_consumptions %}
+                                <option value="{{ opt }}" {% if user_data.alcohol_consumption == opt %}selected{% endif %}>{{ opt }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-btn">🔮 Predict Condition</button>
+        </form>
+
+        {% if result %}
+            {% if result.error %}
+                <div class="result-section">
+                    <h3 style="color: #e74c3c;">Error</h3>
+                    <p>{{ result.error }}</p>
+                </div>
+            {% else %}
+                <div class="result-section">
+                    <h2>📊 Prediction Result</h2>
+                    <hr>
+                    
+                    <div class="prediction-box {% if result.is_high_risk %}risk{% else %}safe{% endif %}">
+                        The model predicts a {{ result.prediction_label }} of a mental health condition.
+                        <br>
+                        <span style="font-size: 0.9em; opacity: 0.9;">
+                            Mental Health Risk Score: {{ result.probability|floatformat:6 }}%
+                        </span>
+                    </div>
+
+                    <h3>🤖 Expert AI Review</h3>
+                    <div id="markdown-content" class="markdown-body">
+                        {{ result.ai_review }}
+                    </div>
+                    
+                    <script>
+                        document.addEventListener("DOMContentLoaded", function() {
+                            var rawMarkdown = document.getElementById('markdown-content').textContent;
+                            document.getElementById('markdown-content').innerHTML = marked.parse(rawMarkdown);
+                        });
+                    </script>
+
+                    <div style="margin-top: 20px; padding: 15px; background: rgba(52, 152, 219, 0.1); border-left: 4px solid #3498db; font-size: 0.9em;">
+                        <strong>Disclaimer:</strong> This prediction is based on a machine learning model and is not a substitute for a professional medical diagnosis. Please consult a healthcare provider for any health concerns.
+                    </div>
+                </div>
+            {% endif %}
+        {% endif %}
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,336 @@
+/* =========================================
+   1. GLOBAL & BODY
+   ========================================= */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
+
+body {
+    /* Deep, professional dark blue-grey background */
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    color: #e2e8f0; /* Soft white text, easier on eyes than pure white */
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    line-height: 1.6;
+}
+
+/* =========================================
+   2. HEADER
+   ========================================= */
+.header {
+    background: rgba(15, 23, 42, 0.4); /* Semi-transparent */
+    backdrop-filter: blur(10px); /* Glass effect */
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: sticky; /* Stays at top */
+    top: 0;
+    z-index: 100;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.header h1 {
+    margin: 0;
+    font-weight: 600;
+    font-size: 1.8rem;
+    color: #fff;
+    letter-spacing: 0.5px;
+}
+
+/* Back Button - Cleaner Look */
+.back-btn {
+    position: absolute;
+    left: 40px;
+    text-decoration: none;
+    color: #94a3b8; /* Muted color */
+    background: transparent;
+    padding: 8px 16px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+}
+
+.back-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    border-color: #fff;
+}
+
+/* =========================================
+   3. MAIN CONTAINER (The "Free Flowing" Part)
+   ========================================= */
+.tool-container {
+    /* Wider container for a less 'packed' feel */
+    width: 90%;
+    max-width: 1200px; 
+    margin: 60px auto;
+    
+    /* Clean card look */
+    background: rgba(30, 41, 59, 0.5); /* Slate 800 with transparency */
+    backdrop-filter: blur(10px);
+    padding: 60px; /* Lots of internal space */
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); /* Deep shadow for depth */
+}
+
+/* Description Text */
+.tool-description {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #cbd5e1;
+    margin-bottom: 50px;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+    font-weight: 300;
+}
+
+/* =========================================
+   4. FORMS & INPUTS
+   ========================================= */
+.tool-form {
+    max-width: 800px; /* Keep form inputs focused in center */
+    margin: 0 auto;
+}
+
+.form-group {
+    margin-bottom: 30px;
+}
+
+.tool-form label {
+    display: block;
+    margin-bottom: 12px;
+    font-weight: 500;
+    color: #94a3b8; /* Label is slightly muted */
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Inputs - Large and inviting */
+.tool-form input[type="text"],
+.tool-form input[type="number"],
+.tool-form select,
+.tool-form input[type="file"] {
+    width: 100%;
+    padding: 18px 25px; /* Taller input */
+    background: rgba(15, 23, 42, 0.6); /* Darker inner background */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    color: #fff;
+    font-size: 1.1rem;
+    font-family: inherit;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+}
+
+.tool-form input:focus,
+.tool-form select:focus {
+    outline: none;
+    border-color: #38bdf8; /* Sky blue focus color */
+    box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.1);
+    background: rgba(15, 23, 42, 0.9);
+}
+
+/* Submit Button - Gradient & Sleek */
+.submit-btn {
+    width: 100%;
+    padding: 18px;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); /* Professional Blue */
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    margin-top: 20px;
+    box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
+}
+
+.submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 20px 25px -5px rgba(37, 99, 235, 0.4);
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+}
+
+.submit-btn:disabled {
+    background: #475569;
+    cursor: wait;
+    transform: none;
+    box-shadow: none;
+}
+
+/* =========================================
+   5. RESULTS SECTION (Spacious & Readable)
+   ========================================= */
+.result-section {
+    margin-top: 60px;
+    background: rgba(255, 255, 255, 0.03); /* Very subtle overlay */
+    padding: 50px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    animation: fadeIn 0.8s ease-out;
+}
+
+.result-section h2 {
+    color: #38bdf8; /* Sky blue heading */
+    font-size: 1.8rem;
+    margin-top: 0;
+    margin-bottom: 25px;
+    border-bottom: 1px solid rgba(56, 189, 248, 0.3);
+    padding-bottom: 15px;
+    display: inline-block;
+}
+
+/* Markdown Content - The "Free Flowing" Text */
+.markdown-body {
+    font-size: 1.15rem; /* Larger text */
+    line-height: 1.8;   /* More space between lines */
+    color: #e2e8f0;
+}
+
+.markdown-body h1, 
+.markdown-body h2, 
+.markdown-body h3 {
+    color: #f8fafc;
+    margin-top: 1.5em;
+    margin-bottom: 0.8em;
+    font-weight: 600;
+}
+
+.markdown-body p {
+    margin-bottom: 1.5em; /* Space between paragraphs */
+}
+
+.markdown-body ul, 
+.markdown-body ol {
+    margin-bottom: 1.5em;
+    padding-left: 25px;
+}
+
+.markdown-body li {
+    margin-bottom: 0.8em; /* Space between bullet points */
+}
+
+.markdown-body strong {
+    color: #38bdf8; /* Highlight bold text */
+    font-weight: 600;
+}
+
+.markdown-body code {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-family: 'Consolas', monospace;
+    color: #fca5a5;
+    font-size: 0.95em;
+}
+
+/* =========================================
+   6. UTILITIES & ANIMATIONS
+   ========================================= */
+hr {
+    border: 0;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.1);
+    margin: 40px 0;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Source List Links */
+.source-list li {
+    background: rgba(15, 23, 42, 0.4);
+    margin-bottom: 12px;
+    padding: 15px 20px;
+    border-radius: 8px;
+    border-left: 4px solid #38bdf8;
+    transition: background 0.2s;
+}
+
+.source-list li:hover {
+    background: rgba(15, 23, 42, 0.8);
+}
+
+.source-list a {
+    color: #7dd3fc;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.source-list a:hover {
+    text-decoration: underline;
+}
+
+/* =========================================
+   7. FIX FOR OVERFLOWING TEXT (Code Blocks)
+   ========================================= */
+
+/* Force code blocks (generated by indented text) to wrap */
+.markdown-body pre {
+    white-space: pre-wrap;       /* key fix: wraps text to next line */
+    word-wrap: break-word;       /* breaks long words if needed */
+    background: rgba(0, 0, 0, 0.3);
+    padding: 15px;
+    border-radius: 8px;
+    overflow-x: hidden;          /* hides scrollbar, forces wrap */
+    max-width: 100%;             /* explicitly limits width */
+    font-family: 'Consolas', monospace;
+    color: #fca5a5;              /* matches your code color */
+}
+
+/* Ensure inline code also wraps if necessary */
+.markdown-body code {
+    white-space: pre-wrap;
+    word-break: break-word;
+    /* existing styles below are fine to keep or re-declare */
+    background: rgba(0, 0, 0, 0.3);
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-family: 'Consolas', monospace;
+    color: #fca5a5;
+    font-size: 0.95em;
+}
+
+/* Ensure images (if any) don't overflow */
+.markdown-body img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+}
+
+/* Add this keyframe animation at the bottom of your CSS file */
+@keyframes logoGlow {
+    0% {
+        filter: drop-shadow(0 0 2px rgba(56, 189, 248, 0.3));
+    }
+    100% {
+        filter: drop-shadow(0 0 15px rgba(56, 189, 248, 0.9));
+    }
+}
+
+/* Update your .tool-logo class */
+.tool-logo {
+    height: 75px;       /* Slightly smaller to fit perfectly in the header bar */
+    width: auto;
+    
+    /* Position on the far right */
+    position: absolute;
+    right: 40px;
+    top: 50%;
+    transform: translateY(-50%); /* Centers it vertically */
+    
+    /* Glow Animation */
+    animation: logoGlow 2s ease-in-out infinite alternate;
+}

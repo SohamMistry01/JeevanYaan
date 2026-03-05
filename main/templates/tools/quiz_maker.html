@@ -1,0 +1,180 @@
+{% load static %}
+{% load custom_filters %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+    <title>Quiz Maker - JeevanYaan</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        /* Quiz Specific Styles */
+        .option-label {
+            display: block;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px 15px;
+            margin: 5px 0;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .option-label:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        .option-input {
+            margin-right: 10px;
+        }
+        .explanation-box {
+            background: rgba(52, 152, 219, 0.15);
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin-top: 10px;
+            border-radius: 4px;
+            font-size: 0.95em;
+        }
+        .correct-answer { color: #2ecc71; font-weight: bold; }
+        .wrong-answer { color: #e74c3c; font-weight: bold; }
+        
+        .score-banner {
+            text-align: center;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+        .score-high { background: rgba(46, 204, 113, 0.2); border: 1px solid #2ecc71; color: #2ecc71; }
+        .score-mid { background: rgba(52, 152, 219, 0.2); border: 1px solid #3498db; color: #3498db; }
+        .score-low { background: rgba(241, 196, 15, 0.2); border: 1px solid #f1c40f; color: #f1c40f; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <a href="{% url 'home' %}" class="back-btn"> <- Back to Dashboard</a>
+        <img src="{% static 'images/alt-logo-new.png' %}" alt="JeevanYaan Logo" class="tool-logo">
+        <h1>AI Quiz Generator</h1>
+    </div>
+
+    <div class="tool-container">
+        
+        {% if stage == 'config' %}
+        <p class="tool-description">Create a custom quiz on any topic instantly.</p>
+        <form method="post" class="tool-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="generate">
+            
+            <div class="form-group">
+                <label>Subject</label>
+                <input type="text" name="subject" required placeholder="e.g. Science">
+            </div>
+            <div class="form-group">
+                <label>Topic</label>
+                <input type="text" name="topic" required placeholder="e.g. Biology">
+            </div>
+            <div class="form-group">
+                <label>Subtopic (Optional)</label>
+                <input type="text" name="subtopic" placeholder="e.g. Cell Structure">
+            </div>
+            <div class="form-group">
+                <label>Difficulty</label>
+                <select name="difficulty">
+                    <option value="Beginner">Beginner</option>
+                    <option value="Practitioner">Practitioner</option>
+                    <option value="Expert">Expert</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Number of Questions</label>
+                <input type="number" name="num_questions" value="5" min="3" max="20">
+            </div>
+
+            <button type="submit" class="submit-btn">✨ Generate Quiz</button>
+        </form>
+        {% endif %}
+
+
+        {% if stage == 'taking' %}
+        <div class="result-section">
+            <h2>Quiz on {{ meta.topic }} ({{ meta.difficulty }})</h2>
+            <hr>
+            <form method="post" class="tool-form">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="submit">
+
+                {% for q in quiz_data %}
+                <div style="margin-bottom: 30px;">
+                    <p><strong>Question {{ forloop.counter }}: {{ q.question }}</strong></p>
+                    {% for key, val in q.options.items %}
+                    <label class="option-label">
+                        <input type="radio" name="q_{{ forloop.parentloop.counter0 }}" value="{{ val }}" class="option-input" required> 
+                        {{ key }}: {{ val }}
+                    </label>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+
+                <button type="submit" class="submit-btn">✅ Submit Quiz</button>
+            </form>
+        </div>
+        {% endif %}
+
+
+        {% if stage == 'results' %}
+        <div class="result-section">
+            
+            <div class="score-banner 
+                {% if results.percentage >= 75 %}score-high
+                {% elif results.percentage >= 50 %}score-mid
+                {% else %}score-low{% endif %}">
+                Score: {{ results.score }} / {{ results.total }} ({{ results.percentage|floatformat:0 }}%)
+            </div>
+
+            <h3>🧐 Review Your Answers</h3>
+            
+            {% for q in quiz_data %}
+                {% with user_ans=results.user_answers|get_item:forloop.counter0 %}
+                
+                <div style="margin-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px;">
+                    <p><strong>Q{{ forloop.counter }}: {{ q.question }}</strong></p>
+                    
+                    {% if user_ans == q.options|get_item:q.answer %}
+                        <p>Your Answer: <span class="correct-answer">{{ user_ans }} (Correct)</span></p>
+                    {% else %}
+                        <p>Your Answer: <span class="wrong-answer">{{ user_ans }} (Incorrect)</span></p>
+                        <p>Correct Answer: <span class="correct-answer">{{ q.options|get_item:q.answer }}</span></p>
+                        
+                        {% if q.question in results.explanations %}
+                        <div class="explanation-box">
+                            <strong>💡 Explanation:</strong><br>
+                            <span class="markdown-content">{{ results.explanations|get_item:q.question }}</span>
+                        </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+                {% endwith %}
+            {% endfor %}
+
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="reset">
+                <button type="submit" class="submit-btn" style="background-color: #3498db;">🔄 Start New Quiz</button>
+            </form>
+            
+            <script>
+                // Render markdown explanations
+                document.addEventListener("DOMContentLoaded", function() {
+                    const mdElements = document.querySelectorAll('.markdown-content');
+                    mdElements.forEach(el => {
+                        el.innerHTML = marked.parse(el.textContent);
+                    });
+                });
+            </script>
+        </div>
+        {% endif %}
+
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,114 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+    <title>Notes & Assignment Assistant - JeevanYaan</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        function showLoading() {
+            document.querySelector('.loading-msg').style.display = 'block';
+            document.querySelector('.submit-btn').disabled = true;
+            document.querySelector('.submit-btn').innerText = "Processing Files... ⏳";
+        }
+
+        function toggleCustomInput() {
+            var intent = document.getElementById("user_intent").value;
+            var customBox = document.getElementById("custom_instruction_box");
+            if (intent === "custom") {
+                customBox.style.display = "block";
+            } else {
+                customBox.style.display = "none";
+            }
+        }
+    </script>
+    <style>
+        /* Tool specific overrides */
+        input[type="file"] {
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-radius: 5px;
+            width: 100%;
+        }
+        .loading-msg {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+            color: #bdc3c7;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body onload="toggleCustomInput()">
+
+    <div class="header">
+        <a href="{% url 'home' %}" class="back-btn"> <- Back to Dashboard</a>
+        <h1>Notes & Assignment Assistant</h1>
+        <img src="{% static 'images/alt-logo-new.png' %}" alt="JeevanYaan Logo" class="tool-logo">
+    </div>
+
+    <div class="tool-container">
+        <p class="tool-description">
+            Upload your lecture notes or assignments (PDF, DOCX, TXT) and let AI generate summaries, revision notes, or practice questions.
+        </p>
+
+        <form method="post" enctype="multipart/form-data" class="tool-form" onsubmit="showLoading()">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="files">Upload Files (Max 5)</label>
+                <input type="file" id="files" name="files" multiple accept=".txt,.pdf,.docx" required>
+                <small style="color: #bdc3c7;">Supported formats: .txt, .pdf, .docx</small>
+            </div>
+
+            <div class="form-group">
+                <label for="user_intent">I want to...</label>
+                <select name="user_intent" id="user_intent" onchange="toggleCustomInput()">
+                    <option value="summary" {% if user_intent == 'summary' %}selected{% endif %}>📄 Generate a Summary</option>
+                    <option value="quick_revision" {% if user_intent == 'quick_revision' %}selected{% endif %}>⚡ Create Quick Revision Notes</option>
+                    <option value="practice_qa" {% if user_intent == 'practice_qa' %}selected{% endif %}>❓ Create Practice Q&A</option>
+                    <option value="custom" {% if user_intent == 'custom' %}selected{% endif %}>✨ Custom Instruction</option>
+                </select>
+            </div>
+
+            <div class="form-group" id="custom_instruction_box" style="display: none;">
+                <label for="custom_instruction">Custom Instruction</label>
+                <input type="text" name="custom_instruction" value="{{ custom_instruction }}" placeholder="e.g., Explain the key concepts in simple terms">
+            </div>
+
+            <button type="submit" class="submit-btn">🚀 Process Documents</button>
+            <div class="loading-msg">Reading files and generating content... This might take a minute.</div>
+        </form>
+
+        {% if result %}
+        <div class="result-section">
+            <h2>✅ AI Generated Output</h2>
+            <hr>
+            
+            <div id="markdown-content" class="markdown-body">
+                {{ result }}
+            </div>
+
+            <form method="post" style="margin-top: 30px;">
+                {% csrf_token %}
+                <input type="hidden" name="pdf_content" value="{{ result }}">
+                <button type="submit" name="download_pdf" value="true" class="submit-btn" style="background: #e67e22;">
+                    📥 Download as PDF
+                </button>
+            </form>
+
+            <script>
+                document.addEventListener("DOMContentLoaded", function() {
+                    var rawMarkdown = document.getElementById('markdown-content').textContent;
+                    document.getElementById('markdown-content').innerHTML = marked.parse(rawMarkdown);
+                });
+            </script>
+        </div>
+        {% endif %}
+    </div>
+
+</body>
+</html>

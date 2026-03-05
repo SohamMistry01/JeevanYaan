@@ -1,0 +1,273 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+    <title>JeevanYaan - Home</title>
+    <link rel="stylesheet" href="{% static 'css/main_styles.css' %}">
+    
+    <script>
+        // 1. Helper function to switch the logo based on theme
+        function updateLogo(theme) {
+            const logo = document.getElementById('theme-logo');
+            if (!logo) return;
+            
+            const lightSrc = logo.getAttribute('data-light');
+            const darkSrc = logo.getAttribute('data-dark');
+            
+            // Switch source based on theme
+            if (theme === 'dark' && darkSrc) {
+                logo.src = darkSrc;
+            } else if (lightSrc) {
+                logo.src = lightSrc;
+            }
+        }
+
+        // 2. Initialize Theme & Logo on Page Load
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            
+            // Update logo as soon as the element is ready
+            document.addEventListener('DOMContentLoaded', function() {
+                updateLogo(savedTheme);
+            });
+        })();
+
+        // 3. Toggle Function called by the button
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+            
+            updateLogo(next); // Switch the logo immediately
+        }
+    </script>
+    
+    <style>
+        /* Specific override for the 'Thought of the Day' box to match the new theme */
+        .thought-box {
+            background: rgba(var(--accent-color-rgb), 0.1); 
+            border-left: 4px solid var(--accent-color);
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 8px;
+            text-align: left;
+            font-style: italic;
+            color: var(--text-primary);
+            background-color: var(--input-bg); 
+        }
+        .thought-box strong {
+            display: block;
+            margin-bottom: 8px;
+            font-style: normal;
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+        
+        /* ✅ NEW: Limit Badge Styles */
+        .limit-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: black; /* Defaults to your blue */
+            color: #ffffff;
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: bold;
+            z-index: 2; /* Keeps it above the dark hover overlay */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            letter-spacing: 0.5px;
+        }
+        /* Color overrides based on status */
+        .limit-badge.unlimited { background: #10b981; } /* Green for Unlimited */
+        .limit-badge.empty { background: #ef4444; }
+    </style>
+</head>
+<body>
+
+    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Light/Dark Mode"> ⚙️ </button>
+
+    <div class="home-container">
+        <img id="theme-logo" 
+             src="{% static 'images/logo-new.png' %}" 
+             data-light="{% static 'images/logo-new.png' %}" 
+             data-dark="{% static 'images/alt-logo-new.png' %}" 
+             alt="JeevanYaan Logo" 
+             class="logo">
+        
+        <h1 style="font-size: 2.5rem; margin: 10px 0;">JeevanYaan</h1>
+        <h3 style="color: var(--text-secondary); font-weight: 400; margin-top: 0;">
+            Your AI-Powered Career & Wellness Companion
+        </h3>
+        
+        <hr style="border: 0; border-top: 1px solid var(--card-border); margin: 30px 0;">
+        
+        <p style="font-size: 1.1rem; line-height: 1.8; max-width: 800px; margin: 0 auto; color: var(--text-primary);">
+            Students today face uncertainty in choosing career paths and managing mental well-being.
+            <br>
+            <strong>JeevanYaan</strong> combines personalized career planning with AI-driven mental health awareness 
+            to guide you toward a successful and healthy future.
+        </p>
+
+        {% if thought_of_the_day %}
+        <div class="thought-box">
+            <strong>Thought of the Day:</strong>
+            "{{ thought_of_the_day }}"
+        </div>
+        {% endif %}
+
+        <h2 style="margin-top: 50px; color: var(--accent-color);">Explore Your Tools</h2>
+        
+        <div class="dashboard-grid">
+            
+            <a href="{% url 'career_planner' %}" class="dash-card">
+                <div class="limit-badge {% if limits.career_planner == 0 %}empty{% elif limits.career_planner == 'Unlimited' %}unlimited{% endif %}">
+                    {% if limits.career_planner == 'Unlimited' %}∞ Unlimited{% else %}{{ limits.career_planner }} Left{% endif %}
+                </div>
+                
+                <img src="{% static 'images/career-gif.gif' %}" alt="Career" class="card-icon">
+                <span>Career Path Planner</span>
+                <div class="card-description">Get a personalized career roadmap & guidance based on your goals.</div>
+            </a>
+
+            <a href="{% url 'roadmap_creator' %}" class="dash-card">
+                <div class="limit-badge {% if limits.roadmap_creator == 0 %}empty{% elif limits.roadmap_creator == 'Unlimited' %}unlimited{% endif %}">
+                    {% if limits.roadmap_creator == 'Unlimited' %}∞ Unlimited{% else %}{{ limits.roadmap_creator }} Left{% endif %}
+                </div>
+                
+                <img src="{% static 'images/roadmap-gif.gif' %}" alt="Roadmap" class="card-icon">
+                <span>Roadmap Generator</span>
+                <div class="card-description">Generate step-by-step learning paths from top GitHub repositories.</div>
+            </a>
+
+            <a href="{% url 'notes_assistant' %}" class="dash-card">
+                <div class="limit-badge {% if limits.notes_assistant == 0 %}empty{% elif limits.notes_assistant == 'Unlimited' %}unlimited{% endif %}">
+                    {% if limits.notes_assistant == 'Unlimited' %}∞ Unlimited{% else %}{{ limits.notes_assistant }} Left{% endif %}
+                </div>
+                
+                <img src="{% static 'images/notes-gif.gif' %}" alt="Notes" class="card-icon">
+                <span>Notes Assistant</span>
+                <div class="card-description">Upload files to get summaries, revision notes, modules or anything you want.</div>
+            </a>
+
+            <a href="{% url 'quiz_maker' %}" class="dash-card">
+                <div class="limit-badge {% if limits.quiz_maker == 0 %}empty{% elif limits.quiz_maker == 'Unlimited' %}unlimited{% endif %}">
+                    {% if limits.quiz_maker == 'Unlimited' %}∞ Unlimited{% else %}{{ limits.quiz_maker }} Left{% endif %}
+                </div>
+                
+                <img src="{% static 'images/quiz-gif.gif' %}" alt="Quiz" class="card-icon">
+                <span>Quiz Maker</span>
+                <div class="card-description">Instantly generate multiple-choice quizzes on any topic or subject.</div>
+            </a>
+
+            <a href="{% url 'research_agent' %}" class="dash-card">
+                <div class="limit-badge {% if limits.research_agent == 0 %}empty{% elif limits.research_agent == 'Unlimited' %}unlimited{% endif %}">
+                    {% if limits.research_agent == 'Unlimited' %}∞ Unlimited{% else %}{{ limits.research_agent }} Left{% endif %}
+                </div>
+                
+                <img src="{% static 'images/research-gif.gif' %}" alt="Research" class="card-icon">
+                <span>Research Agent</span>
+                <div class="card-description">AI agent that searches, reads, and summarizes web articles for you.</div>
+            </a>
+
+            <a href="{% url 'news_portal' %}" class="dash-card">
+                <div class="limit-badge {% if limits.news_portal == 0 %}empty{% elif limits.news_portal == 'Unlimited' %}unlimited{% endif %}">
+                    {% if limits.news_portal == 'Unlimited' %}∞ Unlimited{% else %}{{ limits.news_portal }} Left{% endif %}
+                </div>
+                
+                <img src="{% static 'images/news-gif.gif' %}" alt="News" class="card-icon">
+                <span>News Portal</span>
+                <div class="card-description">Stay updated with the latest trending news tailored to your interests.</div>
+            </a>
+
+            <a href="{% url 'resume_scanner' %}" class="dash-card">
+                <div class="limit-badge {% if limits.resume_scanner == 0 %}empty{% elif limits.resume_scanner == 'Unlimited' %}unlimited{% endif %}">
+                    {% if limits.resume_scanner == 'Unlimited' %}∞ Unlimited{% else %}{{ limits.resume_scanner }} Left{% endif %}
+                </div>
+                
+                <img src="{% static 'images/file-gif.gif' %}" alt="Resume" class="card-icon">
+                <span>Resume Scanner</span>
+                <div class="card-description">AI-powered analysis of your resume with scoring and job tips.</div>
+            </a>
+
+            <a href="{% url 'mental_health_analyzer' %}" class="dash-card">
+                <div class="limit-badge {% if limits.mental_health_analyzer == 0 %}empty{% elif limits.mental_health_analyzer == 'Unlimited' %}unlimited{% endif %}">
+                    {% if limits.mental_health_analyzer == 'Unlimited' %}∞ Unlimited{% else %}{{ limits.mental_health_analyzer }} Left{% endif %}
+                </div>
+                
+                <img src="{% static 'images/mental-gif.gif' %}" alt="Mental Health" class="card-icon">
+                <span>Mental Health Analyzer</span>
+                <div class="card-description">Predict mental health risks based on lifestyle factors & get advice.</div>
+            </a>
+
+            <a href="{% url 'logout' %}" class="dash-card" style="border-color: #ef4444; color: #ef4444;">
+                <img src="{% static 'images/log-out-gif.gif' %}" alt="Log Out" class="card-icon">
+                <span>Logout</span>
+                <div class="card-description">Sign out of your account safely.</div>
+            </a>
+        </div>
+        
+        <h3 style="margin-top: 60px; color: var(--text-secondary);">Chat with our Custom GPTs</h3>
+        <div class="dashboard-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
+            <a href="https://chatgpt.com/g/g-692ee364187c8191b8d0ede386908284-jeevanyaan-career-counsellor-gpt" target="_blank" class="dash-card">
+                <img src="{% static 'images/consultation-gif.gif' %}" alt="Cousellor" class="card-icon">
+                <span>Career Counsellor Chatbot</span>
+                <div class="card-description">Need Counselling? Career Counsellor GPT is all you need!</div>
+            </a>
+            <a href="https://chatgpt.com/g/g-692f1ca9fca08191a65f990a685a7911-jeevanyaan-wellness-companion-gpt" target="_blank" class="dash-card">
+                <img src="{% static 'images/wellness-gif.gif' %}" alt="Companion" class="card-icon">
+                <span>Wellness Companion Chatbot</span>
+                <div class="card-description">Wellness Companion GPT - Spreading positivity, enthusiasm and love.</div>
+            </a>
+        </div> 
+        </br>
+        <h3 style="margin-top: 60px; color: var(--text-secondary); border-top: 1px solid var(--card-border); padding-top: 40px;">Contact Us</h3>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; text-align: left; margin-top: 20px;">
+            
+            <div style="background: var(--input-bg); border: var(--input-border); padding: 30px; border-radius: 12px; color: var(--text-primary); display: flex; flex-direction: column; justify-content: center;">
+                <h4 style="color: var(--accent-color); font-size: 1.3rem; margin-top: 0; margin-bottom: 20px;">Get In Touch</h4>
+                
+                <div style="margin-bottom: 15px;">
+                    <strong style="color: var(--text-secondary);">📍 Address:</strong>
+                    <div style="margin-top: 5px;">AISSMS IOIT, Pune - 411001</div>
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <strong style="color: var(--text-secondary);">📧 Email:</strong>
+                    <div style="margin-top: 5px;"><a href="mailto:support@jeevanyaan.com" style="color: var(--text-primary); text-decoration: none;">support@jeevanyaan.com</a></div>
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <strong style="color: var(--text-secondary);">📞 Phone:</strong>
+                    <div style="margin-top: 5px;">+91 99999 00000</div>
+                </div>
+
+                <div>
+                    <strong style="color: var(--text-secondary);">🕒 Working Hours:</strong>
+                    <div style="margin-top: 5px;">Mon - Fri, 9:00 AM - 6:00 PM</div>
+                </div>
+            </div>
+
+            <div style="border-radius: 12px; overflow: hidden; border: var(--input-border); min-height: 300px; display: flex;">
+                <iframe 
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1963.0499738325827!2d73.86669979525455!3d18.531607490389025!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bc2c0f55639f89f%3A0x22ed3d7c6b61cdf3!2sAll%20India%20Shri%20Shivaji%20Memorial%20Societys!5e0!3m2!1sen!2sin!4v1767873229947!5m2!1sen!2sin" 
+                    width="100%" 
+                    height="100%" 
+                    style="border:0;" 
+                    allowfullscreen="" 
+                    loading="lazy" 
+                    referrerpolicy="no-referrer-when-downgrade">
+                </iframe>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
