@@ -87,9 +87,38 @@
         /* Color overrides based on status */
         .limit-badge.unlimited { background: #10b981; } /* Green for Unlimited */
         .limit-badge.empty { background: #ef4444; }
+        .profile-badge {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: var(--card-bg);
+            border: var(--card-border);
+            padding: 10px 20px;
+            border-radius: 30px;
+            color: var(--text-primary);
+            font-weight: 600;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        .profile-badge:hover {
+            transform: translateY(-3px);
+            background: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+        }
     </style>
 </head>
 <body>
+    
+    <a href="{% url 'my_profile' %}" class="profile-badge" title="Manage My Profile">
+        👤 My Profile
+    </a>
 
     <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Light/Dark Mode"> ⚙️ </button>
 
@@ -115,12 +144,12 @@
             to guide you toward a successful and healthy future.
         </p>
 
-        {% if thought_of_the_day %}
-        <div class="thought-box">
+        
+        <div class="thought-box" id="thought-container">
             <strong>Thought of the Day:</strong>
-            "{{ thought_of_the_day }}"
+            <span id="thought-text" style="opacity: 0.7;"><em>Generating thought... ✨</em></span>
         </div>
-        {% endif %}
+        
 
         <h2 style="margin-top: 50px; color: var(--accent-color);">Explore Your Tools</h2>
         
@@ -268,6 +297,26 @@
             </div>
         </div>
     </div>
+    <script>
+        // Fetch the thought asynchronously when the page loads
+        document.addEventListener("DOMContentLoaded", function() {
+            const thoughtTextElement = document.getElementById('thought-text');
+            
+            fetch("{% url 'get_thought_of_the_day' %}")
+                .then(response => response.json())
+                .then(data => {
+                    // Update the text and remove the loading styling
+                    thoughtTextElement.style.opacity = '1';
+                    thoughtTextElement.innerHTML = `"${data.thought}"`;
+                })
+                .catch(error => {
+                    console.error('Error fetching thought:', error);
+                    // Fallback on error
+                    thoughtTextElement.style.opacity = '1';
+                    thoughtTextElement.innerHTML = '"The best way to predict the future is to create it."';
+                });
+        });
+    </script>
 
 </body>
 </html>

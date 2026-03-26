@@ -5,3 +5,4 @@ pycache/
 *.env
 .vscode/
 staticfiles/
+tool_usage_log.csv

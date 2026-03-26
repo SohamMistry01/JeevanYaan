@@ -62,6 +62,7 @@ class ModulesControl(models.Model):
     def __str__(self):
         return f"{self.get_name_of_module_display()} limit for {self.role.name}: {self.daily_limit}"
     
+    
 class UserModuleUsage(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='module_usages')
     module_name = models.CharField(max_length=100)
@@ -76,3 +77,64 @@ class UserModuleUsage(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.module_name} ({self.date}): {self.usage_count}"
+    
+
+class UserProfile(models.Model):
+    # Link to standard Django User (handles username, email, password)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    
+    # --------------------------------
+    # Educational Information
+    # --------------------------------
+    EDUCATION_CHOICES = [
+        ('High School', 'High School'),
+        ('Diploma', 'Diploma'),
+        ('Bachelors', 'Bachelors Degree'),
+        ('Masters', 'Masters Degree'),
+        ('PhD', 'PhD / Doctorate'),
+        ('Other', 'Other')
+    ]
+    education_level = models.CharField(max_length=50, choices=EDUCATION_CHOICES, blank=True, null=True)
+    degree_name = models.CharField(max_length=150, blank=True, null=True, help_text="e.g., B.Tech in Computer Science")
+    
+    # --------------------------------
+    # Professional Status
+    # --------------------------------
+    STATUS_CHOICES = [
+        ('Student', 'Student'),
+        ('Professional', 'Working Professional'),
+        ('Job Seeker', 'Seeking Opportunities'),
+        ('Freelancer', 'Freelancer')
+    ]
+    current_status = models.CharField(max_length=50, choices=STATUS_CHOICES, blank=True, null=True)
+    primary_domain = models.CharField(max_length=100, blank=True, null=True, help_text="e.g., Software Engineering, Data Science, Marketing")
+    years_of_experience = models.PositiveIntegerField(default=0, blank=True, null=True)
+    
+    # --------------------------------
+    # Skills & Goals (Crucial for GenAI Context)
+    # --------------------------------
+    skills = models.TextField(blank=True, null=True, help_text="Comma-separated list of skills (e.g., Python, SQL, Project Management)")
+    career_goals = models.TextField(blank=True, null=True, help_text="What is your ultimate career objective?")
+    
+    # --------------------------------
+    # External Links
+    # --------------------------------
+    github_profile = models.URLField(blank=True, null=True)
+    linkedin_profile = models.URLField(blank=True, null=True)
+    portfolio_website = models.URLField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.user.username}'s Profile"
+
+# Optional but recommended: Django Signals to auto-create a profile when a User is created
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        UserProfile.objects.create(user=instance)
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    instance.profile.save()

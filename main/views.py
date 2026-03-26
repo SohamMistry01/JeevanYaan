@@ -12,7 +12,7 @@ from django.core.files.storage import FileSystemStorage
 from django.conf import settings
 from main.utils.resume_scanner import analyze_resume
 from main.utils.roadmap_creator import get_roadmap
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from main.utils.pdf_generator import create_pdf_bytes
 from main.utils.news_portal import get_top_news, NewsRequest
 from main.utils.notes_assistant import run_notes_pipeline, process_uploaded_files
@@ -65,6 +65,34 @@ def login_user(request):
     return render(request, 'login.html')
 
 
+def get_thought_of_the_day(request):
+    """Returns a generated thought, caching it in the user's session."""
+    
+    # 1. Check if the thought is already saved in the current session
+    if 'thought_of_the_day' in request.session:
+        return JsonResponse({'thought': request.session['thought_of_the_day']})
+
+    # 2. If not found in session, generate a new one
+    thought = "The best way to predict the future is to create it." # Fallback
+    
+    try:
+        groq_api_key = os.getenv("GROQ_API_KEY")
+        if groq_api_key:
+            llm = ChatGroq(model="moonshotai/kimi-k2-instruct", api_key=groq_api_key) 
+            result = llm.invoke(
+                "Generate a random thought of the day on a career or health topic. Just include the thought in your response and nothing else."
+            )
+            thought = result.content
+            
+            # 3. Save the newly generated thought to the session dictionary
+            request.session['thought_of_the_day'] = thought
+            
+    except Exception as e:
+        print(f"Error generating thought of the day: {e}")
+        
+    return JsonResponse({'thought': thought})
+
+
 # -------------------
 # HOME PAGE
 # -------------------
@@ -75,23 +103,7 @@ def home_new(request):
         
     profile, _ = UserProfile.objects.get_or_create(user=request.user)
     
-    # 2. Generate Thought of the Day
-    thought_of_the_day = "The best way to predict the future is to create it." # Fallback thought
-    try:
-        if groq_api_key:
-            # Use the model from your code
-            llm = ChatGroq(model="moonshotai/kimi-k2-instruct") 
-            result = llm.invoke(
-                "Generate a random thought of the day on a career or health topic. Just include the thought in your response and nothing else."
-            )
-            thought_of_the_day = result.content
-        else:
-            print("GROQ_API_KEY not found. Using default thought.")
-    except Exception as e:
-        # If the API call fails for any reason, we'll just use the fallback thought
-        print(f"Error generating thought of the day: {e}")
-    
-    # 3. Calculate Dynamic Daily Limits
+    # 2. Calculate Dynamic Daily Limits
     tools = [
         'career_planner', 
         'roadmap_creator', 
@@ -140,10 +152,9 @@ def home_new(request):
             # Update the dictionary with the numerical remaining value
             limits[tool] = remaining
 
-    # 4. Pass the data into the context
+    # 3. Pass the data into the context
     context = {
         'profile': profile,
-        'thought_of_the_day': thought_of_the_day,
         'limits': limits  # Passes the dynamic limits dictionary to the template
     }
     

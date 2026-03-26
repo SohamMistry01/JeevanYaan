@@ -1,6 +1,6 @@
 from django.shortcuts import redirect
 from django.urls import path
-from . import views
+from . import views, profile_views
 
 urlpatterns = [
     # Authentication
@@ -12,6 +12,8 @@ urlpatterns = [
     # Home Dashboard
     path('home/', views.home_new, name='home'),          # New clean homepage
     path('companion/', views.home_companion, name='companion'), # Old iframe page
+    path('profile/', profile_views.my_profile_view, name='my_profile'),
+    path('api/get-thought/', views.get_thought_of_the_day, name='get_thought_of_the_day'),
 
     # Tools
     path('tools/career-planner/', views.career_planner_view, name='career_planner'),

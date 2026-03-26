@@ -1,0 +1,193 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+    <title>My Profile - JeevanYaan</title>
+    <link rel="stylesheet" href="{% static 'css/main_styles.css' %}">
+    
+    <script>
+        // Theme and Logo Switcher Logic
+        function updateLogo(theme) {
+            const logo = document.getElementById('theme-logo');
+            if (!logo) return;
+            const lightSrc = logo.getAttribute('data-light');
+            const darkSrc = logo.getAttribute('data-dark');
+            logo.src = (theme === 'dark' && darkSrc) ? darkSrc : lightSrc;
+        }
+
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            document.addEventListener('DOMContentLoaded', function() { updateLogo(savedTheme); });
+        })();
+
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+            updateLogo(next);
+        }
+    </script>
+
+    <style>
+        /* Profile specific overrides to match your main_styles.css */
+        textarea {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--input-bg);
+            border: var(--input-border);
+            border-radius: 8px;
+            color: var(--input-text);
+            font-family: inherit;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+            resize: vertical;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+        .form-section {
+            background: rgba(255, 255, 255, 0.03);
+            border: var(--card-border);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+            text-align: left;
+        }
+        .form-section h3 {
+            margin-top: 0;
+            color: var(--accent-color);
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 768px) {
+            .grid-2 { grid-template-columns: 1fr; }
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+        /* Top Navigation inside the container */
+        .profile-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            border-bottom: var(--card-border);
+            padding-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme"> ⚙️ </button>
+
+    <div class="home-container" style="max-width: 900px; margin-top: 40px;">
+        
+        <div class="profile-nav">
+            <a href="{% url 'home' %}" class="btn" style="background: transparent; border: 1px solid var(--text-secondary); color: var(--text-primary); box-shadow: none;">← Back to Dashboard</a>
+            <img id="theme-logo" 
+                 src="{% static 'images/logo-new.png' %}" 
+                 data-light="{% static 'images/logo-new.png' %}" 
+                 data-dark="{% static 'images/alt-logo-new.png' %}" 
+                 alt="Logo" 
+                 style="width: 140px; margin: 0;">
+        </div>
+
+        <h1 style="margin-top: 0; margin-bottom: 10px;">My Profile</h1>
+        <p style="color: var(--text-secondary); margin-bottom: 30px;">
+            Update your personal and professional information to get highly personalized AI career guidance. <strong>All fields are optional.</strong>
+        </p>
+
+        {% if messages %}
+            <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid #10b981; color: #10b981; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: left;">
+                <ul style="margin: 0; padding-left: 20px;">
+                    {% for message in messages %}<li>{{ message }}</li>{% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="form-section">
+                <h3>🎓 Education & Professional Status</h3>
+                <div class="grid-2">
+                    <div>
+                        <label>Current Status</label>
+                        {{ form.current_status }}
+                    </div>
+                    <div>
+                        <label>Primary Domain</label>
+                        {{ form.primary_domain }}
+                    </div>
+                    <div>
+                        <label>Highest Education Level</label>
+                        {{ form.education_level }}
+                    </div>
+                    <div>
+                        <label>Degree / Course Name</label>
+                        {{ form.degree_name }}
+                    </div>
+                    <div>
+                        <label>Years of Experience</label>
+                        {{ form.years_of_experience }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>🤖 AI Context (Skills & Goals)</h3>
+                <div>
+                    <label>Your Skills</label>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: -5px; margin-bottom: 8px;">List your technical and soft skills. This helps tools like the Roadmap Generator and Resume Scanner.</p>
+                    {{ form.skills }}
+                </div>
+                <div style="margin-top: 15px;">
+                    <label>Career Goals</label>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: -5px; margin-bottom: 8px;">What are you trying to achieve? This powers the Career Planner.</p>
+                    {{ form.career_goals }}
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>🔗 External Links</h3>
+                <div class="grid-2">
+                    <div>
+                        <label>LinkedIn Profile</label>
+                        {{ form.linkedin_profile }}
+                    </div>
+                    <div>
+                        <label>GitHub Profile</label>
+                        {{ form.github_profile }}
+                    </div>
+                    <div style="grid-column: 1 / -1;">
+                        <label>Portfolio Website</label>
+                        {{ form.portfolio_website }}
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn" style="width: 100%; font-size: 1.1rem; padding: 15px;">💾 Save Profile</button>
+        </form>
+
+    </div>
+
+</body>
+</html>
