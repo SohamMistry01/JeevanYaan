@@ -19,7 +19,7 @@ def sanitize_text(text: str) -> str:
         return ""
         
     replacements = {
-        "–": "-", "—": "-", "’": "'", "‘": "'", 
+        "–": "-", "—": "-", "’": "'", "‘": "'", "‑": "-",
         "“": '"', "”": '"', "…": "...", "•": "*",
     }
     for old, new in replacements.items():

@@ -32,6 +32,12 @@
     <div class="tool-container">
         <p class="tool-description">Get a <strong>personalized roadmap</strong> for your dream career 🚀</p>
 
+        <div style="display: flex; justify-content: flex-end; max-width: 800px; margin: 0 auto 15px auto;">
+            <button type="button" onclick="autofillProfile()" style="background: rgba(37, 99, 235, 0.1); color: var(--accent-color); border: 1px solid var(--accent-color); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.2s;">
+                ✨ Autofill from My Profile
+            </button>
+        </div>
+
         <form method="post" class="tool-form">
             {% csrf_token %}
             
@@ -42,7 +48,7 @@
 
             <div class="form-group">
                 <label for="career">🎯 Career Goal</label>
-                <input type="text" id="career" name="career" required placeholder="e.g. Software Engineer">
+                <input type="text" id="career" name="career" required placeholder="e.g. Senior Data Scientist">
             </div>
 
             <div class="form-group">
@@ -52,16 +58,30 @@
 
             <div class="form-group">
                 <label for="year">📅 Current Year/Status</label>
-                <input type="text" id="year" name="year" required placeholder="e.g. Final Year">
+                <input type="text" id="year" name="year" required placeholder="e.g. Working Professional (2 yrs exp)">
             </div>
 
             <div class="form-group">
                 <label for="skills">Your Skills</label>
-                <input type="text" id="skills" name="skills" required placeholder="e.g. Python, Full stack, OS, ...">
+                <input type="text" id="skills" name="skills" required placeholder="e.g. Python, SQL, Project Management">
             </div>
 
             <button type="submit" class="submit-btn">✨ Generate My Career Plan</button>
         </form>
+
+        <script>
+            function autofillProfile() {
+                // Uses Django template tags to safely inject the Python strings into JS
+                document.getElementById('name').value = "{{ profile_data.name|escapejs }}";
+                document.getElementById('career').value = "{{ profile_data.career|escapejs }}";
+                document.getElementById('education').value = "{{ profile_data.education|escapejs }}";
+                document.getElementById('year').value = "{{ profile_data.year|escapejs }}";
+                document.getElementById('skills').value = "{{ profile_data.skills|escapejs }}";
+                
+                // Optional: Provide a small visual feedback
+                alert("Form populated with your profile data!");
+            }
+        </script>
 
         {% if result %}
         <div class="result-section">

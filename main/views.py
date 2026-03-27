@@ -179,43 +179,55 @@ def logout_user(request):
 # -------------------
 def career_planner_view(request):
     result = None
+    # 1. Fetch Profile Data for Autofill
+    profile_data = {
+        'name': request.user.first_name or request.user.username,
+        'career': '',
+        'education': '',
+        'year': '',
+        'skills': ''
+    }
+    if request.user.is_authenticated:
+        profile, _ = UserProfile.objects.get_or_create(user=request.user)
+        profile_data['career'] = profile.career_goals if profile.career_goals else ''
+        profile_data['education'] = f"{profile.education_level or ''} {profile.degree_name or ''}".strip()
+        # Combine status and experience for a richer AI context
+        status = profile.current_status or ''
+        exp = f"({profile.years_of_experience} years exp)" if profile.years_of_experience else ""
+        profile_data['year'] = f"{status} {exp}".strip()
+        profile_data['skills'] = profile.skills if profile.skills else ''
+    # 2. Handle Form Submission
     if request.method == 'POST':
         can_use, limit_context = check_and_get_limit(request.user, 'career_planner')
         if not can_use:
-            # limit_context contains the error message
             messages.error(request, limit_context)
-            # Redirect back to the same page so they see the error
-            return redirect('career_planner')
+            return redirect('career_planner')         
         if 'download_pdf' in request.POST:
             content = request.POST.get('pdf_content', '')
             if content:
                 try:
                     pdf_bytes = create_pdf_bytes(content)
                     response = HttpResponse(pdf_bytes, content_type='application/pdf')
-                    # 'attachment' forces download; remove it to view in browser
                     response['Content-Disposition'] = 'attachment; filename="career_plan.pdf"'
                     return response
                 except Exception as e:
-                    # In production, handle gracefully. For now, print error.
                     print(f"PDF Error: {e}")
-
         name = request.POST.get('name')
         career = request.POST.get('career')
         education = request.POST.get('education')
         year = request.POST.get('year')
         skills = request.POST.get('skills')
-
         if all([name, career, education, year, skills]):
             # Call the utility function
             result = get_career_plan(name, career, education, year, skills)
             if limit_context is not None: # None means unlimited
                 limit_context.usage_count += 1
                 limit_context.save()
-        else:
-            # You can add django messages here for validation errors
-            pass
-
-    return render(request, 'tools/career_planner.html', {'result': result})
+    context = {
+        'result': result,
+        'profile_data': profile_data # Pass the data to the frontend
+    }
+    return render(request, 'tools/career_planner.html', context)
 
 # -------------------
 # TOOL: MENTAL HEALTH ANALYZER

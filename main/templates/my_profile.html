@@ -35,7 +35,7 @@
 
     <style>
         /* Profile specific overrides to match your main_styles.css */
-        textarea {
+        textarea, .skill-input {
             width: 100%;
             padding: 12px 16px;
             background: var(--input-bg);
@@ -47,7 +47,7 @@
             box-sizing: border-box;
             resize: vertical;
         }
-        textarea:focus {
+        textarea:focus, .skill-input:focus {
             outline: none;
             border-color: var(--accent-color);
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
@@ -83,7 +83,6 @@
             color: var(--text-secondary);
             font-size: 0.95rem;
         }
-        /* Top Navigation inside the container */
         .profile-nav {
             display: flex;
             justify-content: space-between;
@@ -91,6 +90,29 @@
             margin-bottom: 30px;
             border-bottom: var(--card-border);
             padding-bottom: 20px;
+        }
+
+        /* --- Custom Skill Chips Styles --- */
+        .skill-chip {
+            background: var(--accent-color);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .skill-chip span {
+            cursor: pointer;
+            font-weight: bold;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+        .skill-chip span:hover {
+            opacity: 1;
         }
     </style>
 </head>
@@ -123,7 +145,7 @@
             </div>
         {% endif %}
 
-        <form method="post">
+        <form method="post" id="profile-form">
             {% csrf_token %}
 
             <div class="form-section">
@@ -154,12 +176,21 @@
 
             <div class="form-section">
                 <h3>🤖 AI Context (Skills & Goals)</h3>
+                
                 <div>
                     <label>Your Skills</label>
-                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: -5px; margin-bottom: 8px;">List your technical and soft skills. This helps tools like the Roadmap Generator and Resume Scanner.</p>
-                    {{ form.skills }}
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: -5px; margin-bottom: 8px;">Type a skill and press <strong>Enter</strong> or click <strong>Add</strong>.</p>
+                    
+                    <input type="hidden" name="skills" id="id_skills" value="{{ form.skills.value|default:'' }}">
+                    
+                    <div id="skills-list" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px;"></div>
+                    
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="new-skill-input" class="skill-input" placeholder="e.g. Python, Machine Learning, Leadership" style="margin-bottom: 0;">
+                        <button type="button" onclick="addSkill()" class="btn" style="padding: 12px 24px; margin: 0;">Add</button>
+                    </div>
                 </div>
-                <div style="margin-top: 15px;">
+                <div style="margin-top: 25px;">
                     <label>Career Goals</label>
                     <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: -5px; margin-bottom: 8px;">What are you trying to achieve? This powers the Career Planner.</p>
                     {{ form.career_goals }}
@@ -188,6 +219,65 @@
         </form>
 
     </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const skillsHiddenInput = document.getElementById('id_skills');
+            const skillsList = document.getElementById('skills-list');
+            const newSkillInput = document.getElementById('new-skill-input');
+            
+            // Read existing skills from the database on page load
+            let skills = skillsHiddenInput.value 
+                ? skillsHiddenInput.value.split(',').map(s => s.trim()).filter(s => s) 
+                : [];
+            
+            function renderSkills() {
+                skillsList.innerHTML = '';
+                skills.forEach((skill, index) => {
+                    const chip = document.createElement('div');
+                    chip.className = 'skill-chip';
+                    chip.innerHTML = `${skill} <span onclick="removeSkill(${index})" title="Remove">&times;</span>`;
+                    skillsList.appendChild(chip);
+                });
+                // Update the hidden field so Django saves it properly
+                skillsHiddenInput.value = skills.join(', ');
+            }
+
+            window.addSkill = function() {
+                const val = newSkillInput.value.trim();
+                if (val) {
+                    // Allows user to paste comma separated values natively
+                    const newSkills = val.split(',').map(s => s.trim()).filter(s => s);
+                    
+                    newSkills.forEach(skill => {
+                        // Prevent duplicates
+                        if (!skills.includes(skill)) {
+                            skills.push(skill);
+                        }
+                    });
+                    
+                    newSkillInput.value = '';
+                    renderSkills();
+                }
+            };
+
+            window.removeSkill = function(index) {
+                skills.splice(index, 1);
+                renderSkills();
+            };
+
+            // Allow 'Enter' key to add the skill without submitting the whole form
+            newSkillInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault(); 
+                    addSkill();
+                }
+            });
+
+            // Initial render
+            renderSkills();
+        });
+    </script>
 
 </body>
 </html>
