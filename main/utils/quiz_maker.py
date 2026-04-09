@@ -91,7 +91,7 @@ def generate_explanations(incorrect_questions, difficulty):
         return {}
 
     try:
-        model = ChatGroq(model="meta-llama/llama-4-maverick-17b-128e-instruct", temperature=0.3, api_key=groq_api_key)
+        model = ChatGroq(model="llama-3.3-70b-versatile", temperature=0.3, api_key=groq_api_key)
         explanations = {}
         
         for item in incorrect_questions:

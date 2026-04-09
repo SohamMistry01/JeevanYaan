@@ -20,6 +20,7 @@ def get_roadmap(domain):
         return "Error: Missing GROQ_API_KEY or GITHUB_TOKEN in environment variables."
 
     try:
+        safe_domain = str(domain)[:100]
         # 1. Search GitHub
         headers = {
             "Authorization": f"token {github_token}",
@@ -28,10 +29,10 @@ def get_roadmap(domain):
         query = f"{domain} in:name,description"
         url = f"https://api.github.com/search/repositories?q={query}&sort=stars&order=desc&per_page=5"
         
-        res = requests.get(url, headers=headers)
+        res = requests.get(url, headers=headers, timeout=15)
         
         if res.status_code != 200:
-            return f"Error connecting to GitHub API: {res.status_code} - {res.text}"
+            return f"Error connecting to GitHub API: {res.status_code} - {res.text[:200]}"
             
         items = res.json().get("items", [])
         if not items:
@@ -39,7 +40,7 @@ def get_roadmap(domain):
 
         # 2. Format Repository Data for LLM
         repo_data = "\n".join(
-            [f"{i+1}. {repo['name']}: {repo['description'] or 'No description'} (URL: {repo['html_url']})" 
+            [f"{i+1}. {repo.get('name', 'Unknown')}: {str(repo.get('description') or 'No description')[:250]}... (URL: {repo.get('html_url', '')})" 
              for i, repo in enumerate(items)]
         )
 
