@@ -78,7 +78,7 @@ def get_thought_of_the_day(request):
     try:
         groq_api_key = os.getenv("GROQ_API_KEY")
         if groq_api_key:
-            llm = ChatGroq(model="moonshotai/kimi-k2-instruct", api_key=groq_api_key) 
+            llm = ChatGroq(model="groq/compound", api_key=groq_api_key) 
             result = llm.invoke(
                 "Generate a random thought of the day on a career or health topic. Just include the thought in your response and nothing else."
             )
