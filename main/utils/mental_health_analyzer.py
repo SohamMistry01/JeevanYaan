@@ -80,7 +80,7 @@ def get_mental_health_analysis(data):
     ai_review = "AI Review unavailable."
     if groq_api_key:
         try:
-            llm = ChatGroq(temperature=0.7, model_name="llama-3.1-8b-instant", api_key=groq_api_key)
+            llm = ChatGroq(temperature=0.7, model_name="openai/gpt-oss-120b", api_key=groq_api_key)
             
             expert_prompt = ChatPromptTemplate.from_messages([
                 ("system", """
