@@ -12,9 +12,15 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import os
+import sys
 import dj_database_url
+from dotenv import load_dotenv
+#load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+if getattr(sys, 'frozen', False):
+    BASE_DIR = Path(sys._MEIPASS)
+else:
+    BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 # Quick-start development settings - unsuitable for production
@@ -24,7 +30,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = "django-insecure-!u2)dj+fov25q))tn7ilhod)laee-ba@4ydmh+2%31br+3fe7p"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ["*"]
 
@@ -57,7 +63,7 @@ ROOT_URLCONF = "jeevanyaan.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / 'main/templates'],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -80,7 +86,7 @@ WSGI_APPLICATION = "jeevanyaan.wsgi.application"
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": BASE_DIR / "db.sqlite3",
     }
-}"""
+}
 # New MySQL config
 if os.getenv("DATABASE_URL"):
     DATABASES = {
@@ -95,6 +101,52 @@ else:
             'PASSWORD': 'Soham@01', # Your MySQL password
             'HOST': 'localhost',         # Or the server IP if hosted remotely
             'PORT': '3306',              # Default MySQL port
+            'OPTIONS': {
+                'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+            }
+        }
+    }
+"""    
+
+APP_MODE = os.getenv("APP_MODE", "web")
+print(APP_MODE)
+
+# =========================
+# DATABASE CONFIGURATION
+# =========================
+
+if APP_MODE == "desktop":
+
+    desktop_db_path = Path.home() / "JeevanYaanData"
+    desktop_db_path.mkdir(exist_ok=True)
+
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': desktop_db_path / 'desktop_db.sqlite3',
+        }
+    }
+
+elif os.getenv("DATABASE_URL"):
+
+    # Production Cloud DB
+    DATABASES = {
+        "default": dj_database_url.parse(
+            os.environ.get("DATABASE_URL")
+        )
+    }
+
+else:
+
+    # Local Development MySQL
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'jeevanyaan_db',
+            'USER': 'root',
+            'PASSWORD': 'Soham@01',
+            'HOST': 'localhost',
+            'PORT': '3306',
             'OPTIONS': {
                 'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
             }
@@ -139,6 +191,9 @@ USE_TZ = True
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
