@@ -6,3 +6,4 @@ pycache/
 .vscode/
 staticfiles/
 tool_usage_log.csv
+desktop_db.sqlite3
