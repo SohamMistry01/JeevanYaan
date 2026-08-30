@@ -1,5 +1,3 @@
-<![CDATA[<div align="center">
-
 # 🚀 JeevanYaan — An AI-Powered Career & Wellness Companion
 
 **A full-stack Generative AI web application built with Django, LangChain, LangGraph, and CatBoost that empowers users with intelligent career planning, academic assistance, and mental health insights — all in one platform.**
@@ -10,7 +8,6 @@
 [![LangGraph](https://img.shields.io/badge/LangGraph-0.5-FF6F00?logo=graphql&logoColor=white)](https://langchain-ai.github.io/langgraph/)
 [![Groq](https://img.shields.io/badge/Groq_LPU-Cloud-F55036?logo=groq&logoColor=white)](https://groq.com)
 
-</div>
 
 ---
 
@@ -688,11 +685,8 @@ This project is developed for academic and personal use. All rights reserved by 
 
 ---
 
-<div align="center">
+
 
 **Built with ❤️ using Django, LangChain, LangGraph & CatBoost**
 
 *JeevanYaan — Your AI companion for a better career and a healthier life.*
-
-</div>
-]]>
