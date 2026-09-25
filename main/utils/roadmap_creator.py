@@ -45,7 +45,7 @@ def get_roadmap(domain):
         )
 
         # 3. Generate Roadmap with LLM
-        llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0.5, api_key=groq_key, max_tokens=3500)
+        llm = ChatGroq(model="qwen/qwen3.8-27b", temperature=0.5, api_key=groq_key, max_tokens=3500)
         
         prompt = f""" 
         You are a career assistant AI.
