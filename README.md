@@ -465,7 +465,7 @@ NewsRequest (category, time_filter, limit)
 │ education_level (choices: High School → PhD)                 │
 │ degree_name                                                  │
 │ current_status (choices: Student/Professional/Job Seeker/    │
-│                 Freelancer)                                   │
+│                 Freelancer)                                  │
 │ primary_domain                                               │
 │ years_of_experience                                          │
 │ skills (TextField, comma-separated)                          │
