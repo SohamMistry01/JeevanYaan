@@ -1,36 +1,28 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout, authenticate
 from django.contrib import messages
-from django.contrib.auth.models import User
 from .models import UserProfile, ModulesControl, UserModuleUsage
-from .forms import RegistrationForm
-from main.utils.career_planner import get_career_plan
-from main.utils.mental_health_analyzer import get_mental_health_analysis
-from main.utils.quiz_maker import generate_quiz_data, generate_explanations
-from main.utils.research_agent import get_research_summary
-from django.core.files.storage import FileSystemStorage
-from django.conf import settings
-from main.utils.resume_scanner import analyze_resume
-from main.utils.roadmap_creator import get_roadmap
-from django.http import HttpResponse, JsonResponse
-from main.utils.pdf_generator import create_pdf_bytes
-from main.utils.news_portal import get_top_news, NewsRequest
-from main.utils.notes_assistant import run_notes_pipeline, process_uploaded_files
-from main.utils.rate_limiter import check_and_get_limit
 from django.utils import timezone
 from django.contrib.auth.models import Group
 import os
-from dotenv import load_dotenv
-from langchain_groq import ChatGroq
 
-# --- NEW: Load Environment Variables ---
-load_dotenv()
-groq_api_key = os.getenv("GROQ_API_KEY")
+
+def _create_pdf_response(content, filename):
+    """Import PDF dependencies only when a user requests a download."""
+    from django.http import HttpResponse
+    from main.utils.pdf_generator import create_pdf_bytes
+
+    response = HttpResponse(create_pdf_bytes(content), content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
 
 # -------------------
 # REGISTER USER (Using RegistrationForm)
 # -------------------
 def register_user(request):
+    # Forms are only needed for the registration endpoint.
+    from .forms import RegistrationForm
+
     if request.method == 'POST':
         form = RegistrationForm(request.POST)
         if form.is_valid():
@@ -67,6 +59,7 @@ def login_user(request):
 
 def get_thought_of_the_day(request):
     """Returns a generated thought, caching it in the user's session."""
+    from django.http import JsonResponse
     
     # 1. Check if the thought is already saved in the current session
     if 'thought_of_the_day' in request.session:
@@ -78,6 +71,9 @@ def get_thought_of_the_day(request):
     try:
         groq_api_key = os.getenv("GROQ_API_KEY")
         if groq_api_key:
+            # LangChain is expensive to import; load it only for this API request.
+            from langchain_groq import ChatGroq
+
             llm = ChatGroq(model="openai/gpt-oss-safeguard-20b", api_key=groq_api_key) 
             result = llm.invoke(
                 "Generate a random thought of the day on a career or health topic. Just include the thought in your response and nothing else."
@@ -198,6 +194,8 @@ def career_planner_view(request):
         profile_data['skills'] = profile.skills if profile.skills else ''
     # 2. Handle Form Submission
     if request.method == 'POST':
+        from main.utils.rate_limiter import check_and_get_limit
+
         can_use, limit_context = check_and_get_limit(request.user, 'career_planner')
         if not can_use:
             messages.error(request, limit_context)
@@ -206,10 +204,7 @@ def career_planner_view(request):
             content = request.POST.get('pdf_content', '')
             if content:
                 try:
-                    pdf_bytes = create_pdf_bytes(content)
-                    response = HttpResponse(pdf_bytes, content_type='application/pdf')
-                    response['Content-Disposition'] = 'attachment; filename="career_plan.pdf"'
-                    return response
+                    return _create_pdf_response(content, 'career_plan.pdf')
                 except Exception as e:
                     print(f"PDF Error: {e}")
         name = request.POST.get('name')
@@ -219,6 +214,8 @@ def career_planner_view(request):
         skills = request.POST.get('skills')
         if all([name, career, education, year, skills]):
             # Call the utility function
+            from main.utils.career_planner import get_career_plan
+
             result = get_career_plan(name, career, education, year, skills)
             if limit_context is not None: # None means unlimited
                 limit_context.usage_count += 1
@@ -254,6 +251,8 @@ def mental_health_analyzer_view(request):
     }
 
     if request.method == 'POST':
+        from main.utils.rate_limiter import check_and_get_limit
+
         can_use, limit_context = check_and_get_limit(request.user, 'mental_health_analyzer')
         if not can_use:
             messages.error(request, limit_context)
@@ -263,10 +262,7 @@ def mental_health_analyzer_view(request):
             content = request.POST.get('pdf_content', '')
             if content:
                 try:
-                    pdf_bytes = create_pdf_bytes(content)
-                    response = HttpResponse(pdf_bytes, content_type='application/pdf')
-                    response['Content-Disposition'] = 'attachment; filename="mental_health_analysis.pdf"'
-                    return response
+                    return _create_pdf_response(content, 'mental_health_analysis.pdf')
                 except Exception as e:
                     print(f"PDF Error: {e}")
 
@@ -303,6 +299,8 @@ def mental_health_analyzer_view(request):
                 'Alcohol_Consumption': user_data['alcohol_consumption']
             }
             
+            from main.utils.mental_health_analyzer import get_mental_health_analysis
+
             result = get_mental_health_analysis(data)
             
             if limit_context is not None:
@@ -330,6 +328,8 @@ def quiz_maker_view(request):
     context = {}
 
     if request.method == 'POST':
+        from main.utils.rate_limiter import check_and_get_limit
+
         can_use, limit_context = check_and_get_limit(request.user, 'quiz_maker')
         if not can_use:
             # limit_context contains the error message
@@ -341,11 +341,7 @@ def quiz_maker_view(request):
             content = request.POST.get('pdf_content', '')
             if content:
                 try:
-                    pdf_bytes = create_pdf_bytes(content)
-                    response = HttpResponse(pdf_bytes, content_type='application/pdf')
-                    # 'attachment' forces download; remove it to view in browser
-                    response['Content-Disposition'] = 'attachment; filename="quiz_result.pdf"'
-                    return response
+                    return _create_pdf_response(content, 'quiz_result.pdf')
                 except Exception as e:
                     # In production, handle gracefully. For now, print error.
                     print(f"PDF Error: {e}")
@@ -361,6 +357,8 @@ def quiz_maker_view(request):
             num_questions = int(request.POST.get('num_questions', 5))
 
             if subject and topic:
+                from main.utils.quiz_maker import generate_quiz_data
+
                 quiz_data = generate_quiz_data(subject, topic, subtopic, difficulty, num_questions)
                 if quiz_data:
                     # Store data in session to persist across requests
@@ -395,6 +393,8 @@ def quiz_maker_view(request):
 
             # Generate explanations if there are errors
             difficulty = request.session.get('quiz_meta', {}).get('difficulty', 'Beginner')
+            from main.utils.quiz_maker import generate_explanations
+
             explanations = generate_explanations(incorrect_questions, difficulty)
 
             # Save results to session
@@ -443,6 +443,8 @@ def quiz_maker_view(request):
 def research_agent_view(request):
     result = None
     if request.method == 'POST':
+        from main.utils.rate_limiter import check_and_get_limit
+
         can_use, limit_context = check_and_get_limit(request.user, 'research_agent')
         if not can_use:
             # limit_context contains the error message
@@ -453,17 +455,15 @@ def research_agent_view(request):
             content = request.POST.get('pdf_content', '')
             if content:
                 try:
-                    pdf_bytes = create_pdf_bytes(content)
-                    response = HttpResponse(pdf_bytes, content_type='application/pdf')
-                    # 'attachment' forces download; remove it to view in browser
-                    response['Content-Disposition'] = 'attachment; filename="research_report.pdf"'
-                    return response
+                    return _create_pdf_response(content, 'research_report.pdf')
                 except Exception as e:
                     # In production, handle gracefully. For now, print error.
                     print(f"PDF Error: {e}")
 
         topic = request.POST.get('topic')
         if topic:
+            from main.utils.research_agent import get_research_summary
+
             result = get_research_summary(topic)
             if limit_context is not None: # None means unlimited
                 limit_context.usage_count += 1
@@ -478,6 +478,8 @@ def resume_scanner_view(request):
     result = None
     
     if request.method == 'POST':
+        from main.utils.rate_limiter import check_and_get_limit
+
         can_use, limit_context = check_and_get_limit(request.user, 'resume_scanner')
         if not can_use:
             # limit_context contains the error message
@@ -489,11 +491,7 @@ def resume_scanner_view(request):
             content = request.POST.get('pdf_content', '')
             if content:
                 try:
-                    pdf_bytes = create_pdf_bytes(content)
-                    response = HttpResponse(pdf_bytes, content_type='application/pdf')
-                    # 'attachment' forces download; remove it to view in browser
-                    response['Content-Disposition'] = 'attachment; filename="resume_report.pdf"'
-                    return response
+                    return _create_pdf_response(content, 'resume_report.pdf')
                 except Exception as e:
                     # In production, handle gracefully. For now, print error.
                     print(f"PDF Error: {e}")
@@ -503,6 +501,8 @@ def resume_scanner_view(request):
 
         if name and uploaded_file:
             # 1. Save file temporarily
+            from django.core.files.storage import FileSystemStorage
+
             fs = FileSystemStorage()
             # Ensure the filename is safe and unique
             filename = fs.save(uploaded_file.name, uploaded_file)
@@ -510,6 +510,8 @@ def resume_scanner_view(request):
 
             try:
                 # 2. Process the file
+                from main.utils.resume_scanner import analyze_resume
+
                 result = analyze_resume(name, file_path)
                 if limit_context is not None: # None means unlimited
                     limit_context.usage_count += 1
@@ -534,6 +536,8 @@ def roadmap_creator_view(request):
     domain = ""
     
     if request.method == 'POST':
+        from main.utils.rate_limiter import check_and_get_limit
+
         can_use, limit_context = check_and_get_limit(request.user, 'roadmap_creator')
         if not can_use:
             # limit_context contains the error message
@@ -545,17 +549,15 @@ def roadmap_creator_view(request):
             content = request.POST.get('pdf_content', '')
             if content:
                 try:
-                    pdf_bytes = create_pdf_bytes(content)
-                    response = HttpResponse(pdf_bytes, content_type='application/pdf')
-                    # 'attachment' forces download; remove it to view in browser
-                    response['Content-Disposition'] = 'attachment; filename="roadmap.pdf"'
-                    return response
+                    return _create_pdf_response(content, 'roadmap.pdf')
                 except Exception as e:
                     # In production, handle gracefully. For now, print error.
                     print(f"PDF Error: {e}")
 
         domain = request.POST.get('domain')
         if domain:
+            from main.utils.roadmap_creator import get_roadmap
+
             result = get_roadmap(domain)
             if limit_context is not None: # None means unlimited
                 if result and not result.startswith("Error") and not result.startswith("An error occurred"):
@@ -573,6 +575,8 @@ def notes_assistant_view(request):
     custom_instruction = ""
 
     if request.method == 'POST':
+        from main.utils.rate_limiter import check_and_get_limit
+
         can_use, limit_context = check_and_get_limit(request.user, 'notes_assistant')
         if not can_use:
             # limit_context contains the error message
@@ -584,10 +588,7 @@ def notes_assistant_view(request):
             content = request.POST.get('pdf_content', '')
             if content:
                 try:
-                    pdf_bytes = create_pdf_bytes(content)
-                    response = HttpResponse(pdf_bytes, content_type='application/pdf')
-                    response['Content-Disposition'] = 'attachment; filename="notes_assistant_report.pdf"'
-                    return response
+                    return _create_pdf_response(content, 'notes_assistant_report.pdf')
                 except Exception as e:
                     print(f"PDF Error: {e}")
 
@@ -604,6 +605,8 @@ def notes_assistant_view(request):
             else:
                 try:
                     # Extract text from files
+                    from main.utils.notes_assistant import process_uploaded_files, run_notes_pipeline
+
                     file_contents = process_uploaded_files(uploaded_files)
                     
                     if not file_contents:
@@ -635,6 +638,8 @@ def news_portal_view(request):
     time_filters = ["daily", "weekly", "monthly"]
     
     if request.method == 'POST':
+        from main.utils.rate_limiter import check_and_get_limit
+
         can_use, limit_context = check_and_get_limit(request.user, 'news_portal')
         if not can_use:
             # limit_context contains the error message
@@ -647,10 +652,7 @@ def news_portal_view(request):
             content = request.POST.get('pdf_content', '')
             if content:
                 try:
-                    pdf_bytes = create_pdf_bytes(content)
-                    response = HttpResponse(pdf_bytes, content_type='application/pdf')
-                    response['Content-Disposition'] = 'attachment; filename="news_report.pdf"'
-                    return response
+                    return _create_pdf_response(content, 'news_report.pdf')
                 except Exception as e:
                     print(f"PDF Error: {e}")
                     messages.error(request, "Failed to generate PDF.")
@@ -663,6 +665,8 @@ def news_portal_view(request):
             limit = int(request.POST.get('limit', 5))
             
             if category and time_filter:
+                from main.utils.news_portal import NewsRequest, get_top_news
+
                 req = NewsRequest(
                     category=category,
                     time_filter=time_filter,
