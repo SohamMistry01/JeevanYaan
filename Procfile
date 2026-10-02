@@ -1,1 +1,1 @@
-web: gunicorn jeevanyaan.wsgi:application
+web: gunicorn --bind 0.0.0.0:$PORT jeevanyaan.wsgi:application
